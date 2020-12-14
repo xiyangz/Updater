@@ -1,0 +1,14 @@
+﻿<Window x:Class="Update.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Update"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <TextBlock Name="tb" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="96,63,0,0"/>
+        <ProgressBar HorizontalAlignment="Left" Height="10" Margin="96,111,0,0" Name="pbDown" Value="0" Maximum="0" VerticalAlignment="Top" Width="100"/>
+        <TextBlock Name="tb_percent" Text=""  HorizontalAlignment="Left" VerticalAlignment="Top" Margin="99,94,0,0" ></TextBlock>
+    </Grid>
+</Window>
