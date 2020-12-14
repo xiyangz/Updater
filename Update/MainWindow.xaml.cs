@@ -26,23 +26,30 @@ namespace Update
         public MainWindow()
         {
             InitializeComponent();
-            String[] http_urls = new string[] { "https://repo.anaconda.com/archive/Anaconda3-2020.11-Windows-x86_64.exe",
+
+            ThreadPool.QueueUserWorkItem((obj) =>
+            {
+
+                String[] http_urls = new string[] { "https://repo.anaconda.com/archive/Anaconda3-2020.11-Windows-x86_64.exe",
                                                 "https://download-cf.jetbrains.com/python/pycharm-community-2020.3.exe",
-                                                   };   
-            String[] save_urls = new string[] { @"C:\Users\12132\Desktop\1.zip",
-                                                @"C:\Users\12132\Desktop\2.zip",
                                                    };
-            List<String> exist_http_urls = new List<string>();
-            List<String> exist_save_urls = new List<string>();
-            for (int i=0; i<http_urls.Length; i++)
-            {   
-                if (HttpFileExist(http_urls[i]))
+                String[] save_urls = new string[] { @"1.zip",
+                                                @"2.zip",
+                                                   };
+                List<String> exist_http_urls = new List<string>();
+                List<String> exist_save_urls = new List<string>();
+                for (int i = 0; i < http_urls.Length; i++)
                 {
-                    exist_http_urls.Add(http_urls[i]);
-                    exist_save_urls.Add(save_urls[i]);
+                    if (HttpFileExist(http_urls[i]))
+                    {
+                        exist_http_urls.Add(http_urls[i]);
+                        exist_save_urls.Add(save_urls[i]);
+                    }
                 }
+                DownloadHttpFile(exist_http_urls, exist_save_urls);
             }
-            DownloadHttpFile(exist_http_urls, exist_save_urls);
+            , null);
+            
         }
 
         //需要处理下载失败
@@ -53,18 +60,20 @@ namespace Update
             List<WebRequest> requests = new List<WebRequest>();
             List<String> fileNames = new List<String>();
             int i = 0;
+            long max = 0;
             foreach (var urls in http_urls)
             {
                 requests.Add(WebRequest.Create(urls));
                 response = requests[i].GetResponse();
                 if (response == null) return;
                 //读远程文件的大小
-                pbDown.Maximum += response.ContentLength;
+                max += response.ContentLength;
+                
                 fileNames.Add(response.ResponseUri.Segments[response.ResponseUri.Segments.Length - 1]);
                 i++;
             }
+            pbDown.Dispatcher.BeginInvoke(new ProgressBarMaximumSetter(SetProgressBarMaximum), max);
 
-            
             //下载远程文件
             ThreadPool.QueueUserWorkItem((obj) =>
             {
@@ -127,13 +136,19 @@ namespace Update
             return result;
         }
 
+        public delegate void ProgressBarMaximumSetter(long max);
+        public void SetProgressBarMaximum(long max)
+        {
+            pbDown.Maximum = max;
+        }
+
         public delegate void ProgressBarSetter(double value, String fileName, int downloadSpeed);
         public void SetProgressBar(double value, String fileName, int downloadSpeed)
         {
             //显示进度条
             pbDown.Value += value;
             //显示百分比
-            tb_percent.Text = ((pbDown.Value / pbDown.Maximum) * 100).ToString("f1") + "%  ";
+            tb_percent.Text = ((pbDown.Value / pbDown.Maximum) * 100).ToString("f1") + "% - ";
             if(downloadSpeed > 1024)
             {
                 tb_percent.Text += ((double)downloadSpeed / 1024).ToString("f1") + " MB/s";
@@ -146,6 +161,19 @@ namespace Update
             {
                 tb_percent.Text += downloadSpeed + " KB/s";
             }
+            int remain_sec = (int)((pbDown.Maximum - pbDown.Value) / (downloadSpeed * 1024));
+            tb_percent.Text += " - ";
+            if (remain_sec / (60 * 60) > 0)
+            {
+                tb_percent.Text += (int)(remain_sec/(60*60)) + "h ";
+                remain_sec %= 60 * 60;
+            }
+            if (remain_sec / 60 > 0)
+            {
+                tb_percent.Text += (int)(remain_sec / 60) + "m ";
+                remain_sec %= 60;
+            }
+            tb_percent.Text += remain_sec + "s ";
             tb.Text = fileName;
         }
     }

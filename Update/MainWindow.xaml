@@ -5,10 +5,25 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Update"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <TextBlock Name="tb" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="96,63,0,0"/>
-        <ProgressBar HorizontalAlignment="Left" Height="10" Margin="96,111,0,0" Name="pbDown" Value="0" Maximum="0" VerticalAlignment="Top" Width="100"/>
-        <TextBlock Name="tb_percent" Text=""  HorizontalAlignment="Left" VerticalAlignment="Top" Margin="99,94,0,0" ></TextBlock>
-    </Grid>
+        Title="AeroConnectorUpdater"
+        WindowStyle="None" 
+        WindowChrome.WindowChrome="{DynamicResource WindowChromeKey}" 
+        Height="300" Width="500">
+    <Window.Resources>
+        <WindowChrome x:Key="WindowChromeKey" ResizeBorderThickness="0" CaptionHeight="50">
+        </WindowChrome>
+    </Window.Resources>
+    <Grid Background="#292A35" >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80"></RowDefinition>
+            <RowDefinition Height="155"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="2" VerticalAlignment="Bottom" Margin="20 0 20 10">
+            <TextBlock Name="tb" HorizontalAlignment="Left" Foreground="White" VerticalAlignment="Top"/>
+            <TextBlock Name="tb_percent" Text="wait..." Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Top" ></TextBlock>
+            <ProgressBar HorizontalAlignment="Stretch" Background="#292A35" Height="10" Name="pbDown" Value="0" Maximum="2" VerticalAlignment="Top" />
+
+        </StackPanel>
+        </Grid>
 </Window>
