@@ -1,0 +1,26 @@
+{
+  "files": [
+    {
+      "file_name": "Python编程.pdf",
+      "file_size": 19463263,
+      "download_url": "https://update.aerosim.com.cn/aeroconnector_update/Python编程.pdf",
+      "save_url": ""
+    },
+    {
+      "file_name": "Python核心编程(第3版).pdf",
+      "file_size": 25932205,
+      "download_url": "https://update.aerosim.com.cn/aeroconnector_update/Python核心编程(第3版).pdf",
+      "save_url": "1\\"
+    },
+    {
+
+      "file_name": "EffectivePython.pdf",
+      "file_size": 37240323,
+      "download_url": "https://update.aerosim.com.cn/aeroconnector_update/EffectivePython.pdf",
+      "save_url": "2\\"
+    }
+  ],
+  "update_info": "1.V1.0.1测试\n2.V1.0.1测试\n3.V1.0.1测试",
+  "version": 101,
+  "version_str": "V1.0.1"
+}
