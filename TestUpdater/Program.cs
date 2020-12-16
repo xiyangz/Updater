@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Collections.Generic;
 
 namespace TestUpdater
 {
@@ -13,16 +14,17 @@ namespace TestUpdater
 
         static void Main(string[] args)
         {
+            Directory.CreateDirectory("2\\3\\4");
             //try
             //{
-                string update_info = GetUpdateInfoFromUrl(update_url + "versions.json");
+            string update_info = GetUpdateInfoFromUrl(update_url + "versions.json");
                 JObject jobj = JObject.Parse(update_info);
                 int version = (int)jobj["current_ver"];
                 if (current_version < version)
                 {//有新版本
                     ProcessStartInfo startInfo = new ProcessStartInfo();
                     startInfo.FileName = "../Updater.exe"; //启动的应用程序名称
-                    startInfo.Arguments = "-v " + current_version + " -l zh-CN -u " + update_url + " -j " + update_info;
+                    startInfo.Arguments = "-v " + current_version + " -l zh-CN -u " + update_url;
                     startInfo.WindowStyle = ProcessWindowStyle.Normal;
                     Process.Start(startInfo);
                 }

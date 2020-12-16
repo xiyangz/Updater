@@ -1,16 +1,22 @@
 {
-  "files": [
+  "delete_files": [
     {
-      "file_name": "PARL-develop.zip",
-      "file_size": 26460199,
-      "download_url": "https://update.aerosim.com.cn/aeroconnector_update/PARL-develop.zip",
+      "file_name": "Python±‡≥Ã.pdf",
+      "save_url": ""
+    }
+  ],
+  "update_files": [
+    {
+      "file_name": "Python±‡≥Ã.pdf",
+      "file_size": 19463263,
+      "download_url": "https://update.aerosim.com.cn/aeroconnector_update/Python±‡≥Ã.pdf",
       "save_url": ""
     },
     {
       "file_name": "Python∫À–ƒ±‡≥Ã(µ⁄3∞Ê).pdf",
       "file_size": 25932205,
       "download_url": "https://update.aerosim.com.cn/aeroconnector_update/Python∫À–ƒ±‡≥Ã(µ⁄3∞Ê).pdf",
-      "save_url": "3\\"
+      "save_url": "1\\"
     },
     {
 
@@ -20,7 +26,7 @@
       "save_url": "2\\"
     }
   ],
-  "update_info": "1.V1.0.2≤‚ ‘\n2.V1.0.2≤‚ ‘\n3.V1.0.2≤‚ ‘",
-  "version": 102,
-  "version_str": "V1.0.2"
+  "update_info": "1.V1.0.1≤‚ ‘\n2.V1.0.1≤‚ ‘\n3.V1.0.1≤‚ ‘",
+  "version": 1011215,
+  "version_str": "V1.0.1.1215"
 }
