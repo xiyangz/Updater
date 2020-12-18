@@ -1,0 +1,33 @@
+{
+  "insert_files": [
+    {
+      "file_name": "PARL-develop.zip",
+      "file_size": 26460199,
+      "download_url": "https://update.aerosim.com.cn/aeroconnector_update/v1011215/PARL-develop.zip",
+      "save_url": ""
+    },
+    {
+      "file_name": "test1.pdf",
+      "file_size": 37240323,
+      "download_url": "https://update.aerosim.com.cn/aeroconnector_update/v1011215/test1.pdf",
+      "save_url": ""
+    }
+  ],
+  "delete_files": [
+    {
+      "file_name": "test.pdf",
+      "save_url": ""
+    }
+  ],
+  "update_files": [
+    {
+      "file_name": "v.txt",
+      "file_size": 8,
+      "download_url": "https://update.aerosim.com.cn/aeroconnector_update/v1011215/v.txt",
+      "save_url": ""
+    }
+  ],
+  "update_info": "1.V1.0.1.1215≤‚ ‘\n\n2.V1.0.1.1215≤‚ ‘\n\n3.V1.0.1.1215≤‚ ‘",
+  "version": 1011215,
+  "version_str": "V1.0.1.1215"
+}

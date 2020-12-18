@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>C:\Users\12132\source\repos\Update\Update\bin\Debug\</OutputPath>
+    <OutputPath>C:\Users\12132\source\repos\Updater\Updater\bin\Debug\</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>

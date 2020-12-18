@@ -1,0 +1,22 @@
+{
+  "insert_files": [
+    {
+      "file_name": "test2.pdf",
+      "file_size": 25932205,
+      "download_url": "https://update.aerosim.com.cn/aeroconnector_update/v1021215/test2.pdf",
+      "save_url": ""
+    }
+  ],
+  "delete_files": [],
+  "update_files": [
+    {
+      "file_name": "v.txt",
+      "file_size": 8,
+      "download_url": "https://update.aerosim.com.cn/aeroconnector_update/v1021215/v.txt",
+      "save_url": ""
+    }
+  ],
+  "update_info": "1.V1.0.2.1215≤‚ ‘\n\n2.V1.0.2.1215≤‚ ‘\n\n3.V1.0.2.1215≤‚ ‘",
+  "version": 1021215,
+  "version_str": "V1.0.2.1215"
+}

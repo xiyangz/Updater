@@ -100,6 +100,8 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="README.md" />
+    <None Include="updateinfo_0.json" />
     <None Include="updateinfo_1011215.json" />
     <None Include="updateinfo_1021215.json" />
     <None Include="versions.json" />
@@ -109,6 +111,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Control\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Properties\close_def.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions />

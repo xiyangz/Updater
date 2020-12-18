@@ -10,14 +10,13 @@ namespace TestUpdater
     class Program
     {
         public static string update_url = "https://update.aerosim.com.cn/aeroconnector_update/";
-        public static int current_version = 100;
+        public static int current_version = 1001215;
 
         static void Main(string[] args)
         {
-            Directory.CreateDirectory("2\\3\\4");
-            //try
-            //{
-            string update_info = GetUpdateInfoFromUrl(update_url + "versions.json");
+            try
+            {
+                string update_info = GetUpdateInfoFromUrl(update_url + "versions.json");
                 JObject jobj = JObject.Parse(update_info);
                 int version = (int)jobj["current_ver"];
                 if (current_version < version)
@@ -28,13 +27,18 @@ namespace TestUpdater
                     startInfo.WindowStyle = ProcessWindowStyle.Normal;
                     Process.Start(startInfo);
                 }
-            //}
-           // catch (Exception)
-            //{
-            //    Console.WriteLine("Error Occur");
-            //}
+            }
+            catch(IOException ioe)
+            {//一般只会是文件占用导致这个异常
+                Console.WriteLine(ioe.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
             Console.WriteLine("Hello World!");
+            //Console.
         }
 
         static public string GetUpdateInfoFromUrl(string http_url)

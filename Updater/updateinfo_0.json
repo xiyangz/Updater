@@ -1,0 +1,21 @@
+{
+  "insert_files": [
+    {
+      "file_name": "v.txt",
+      "file_size": 2,
+      "download_url": "https://update.aerosim.com.cn/aeroconnector_update/v0/v.txt",
+      "save_url": ""
+    },
+    {
+      "file_name": "test.pdf",
+      "file_size": 19463263,
+      "download_url": "https://update.aerosim.com.cn/aeroconnector_update/v0/test.pdf",
+      "save_url": ""
+    }
+  ],
+  "delete_files": [],
+  "update_files": [],
+  "update_info": "include full base older file",
+  "version": 0,
+  "version_str": "min version"
+}

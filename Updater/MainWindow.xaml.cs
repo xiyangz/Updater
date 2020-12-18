@@ -9,9 +9,36 @@ using Newtonsoft.Json.Linq;
 
 namespace Update
 {
-    /// <summary>
-    /// MainWindow.xaml 的交互逻辑
-    /// </summary>
+    public class BaseFileInfo
+    {
+        public string file_name;
+        public string save_dir;
+
+        public BaseFileInfo(string _file_name, string _save_dir)
+        {
+            file_name = _file_name;
+            save_dir = _save_dir;
+        }
+
+        public string GetRelativePath()
+        {
+            return save_dir + file_name;
+        }
+    }
+
+    public class FileInfo : BaseFileInfo
+    {
+        public long file_sizes;
+        public string download_url;
+
+        public FileInfo(string _file_name, long _file_sizes, string _download_url, string _save_dir)
+            :base(_file_name,_save_dir)
+        {
+            file_sizes = _file_sizes;
+            download_url = _download_url;
+        }
+    }
+
     public partial class MainWindow : Window
     {
         private Dictionary<string, string> tempFileMap = new Dictionary<string, string>();
@@ -35,17 +62,17 @@ namespace Update
                 //保存 -v当前版本 -u更新地址 -l显示语言 -j版本json文件   更新地址+版本文件能得到文件地址
                 Dictionary<string, string> cmdParam = new Dictionary<string, string>();
                 string exePath = System.IO.Path.GetDirectoryName(pargs[0]);
-                tb_test.FontSize = 10;
+                //tb_test.FontSize = 10;
                 for (int i = 1; i < pargs.Length; i += 2)
                 {
-                    tb_test.Text += pargs[i] + pargs[i + 1];
+                    //tb_test.Text += pargs[i] + pargs[i + 1];
                     cmdParam.Add(pargs[i], pargs[i + 1]);
                 }
-                int current_version = int.Parse(cmdParam["-v"]);//版本，如：100
+                int current_version = int.Parse(cmdParam["-v"]);//版本，如：1001215 后四位为月日前面为版本
                 string sel_language = cmdParam["-l"]; //语言，如：zh-CN
                 string update_url = cmdParam["-u"];  //地址，如: https://update.aerosim.com.cn/aeroconnector_update/
-                //找到需要迭代的版本  比如从 100 升级到 103 需要迭代101 102 103三个版本
-                JObject jobj = JObject.Parse(GetUpdateInfoFromUrl(update_url + "versions.json"));//json字符串{"current_ver": 102,"vesions": [{ "102": 101},{"101" : 100},{ "100" : 0}]}
+                //找到需要迭代的版本  比如从 1001215 升级到 1031215 需要迭代1011215 1021215 1031215三个版本
+                JObject jobj = JObject.Parse(GetUpdateInfoFromUrl(update_url + "versions.json"));//json字符串{"current_ver": 1021215,"vesions": [{ "1021215": 1011215},{"1011215" : 1001215},{ "1001215" : 0}]}
                 int newest_version = (int)jobj["current_ver"];
                 List<int> span_versions = new List<int>();
                 int ver = newest_version;
@@ -56,20 +83,16 @@ namespace Update
                 }
                 if (span_versions.Count < 1)//不需要更新
                     throw new Exception("no need update!");
-                //1.剔除旧版本在新版本也更新的文件，2.增加每个版本新增新版本没更新的文件 和 3 删除当前版本的下个版本中删除的文件
+                //1.删除需更新的旧文件，然后下载更新新文件。2.增加每个版本新增文件。3.删除迭代版本的下个版本中删除的文件。
                 //版本在list中越靠前越新  所以从后往前遍历
                 string version_str = "";
                 int version = 0;
                 string update_info = "";
 
-                Dictionary<string, int> updateFilsMap = new Dictionary<string, int>();//保存update文件下标 与下面变量配合
-                List<string> update_file_names = new List<string>();
-                List<long> update_file_sizes = new List<long>();
-                List<string> update_dwld_urls = new List<string>();
-                List<string> update_save_urls = new List<string>();
-
-                List<string> delete_file_names = new List<string>();
-                List<string> delete_save_urls = new List<string>();
+                List<BaseFileInfo> insert_files = new List<BaseFileInfo>();
+                Dictionary<string, int> updateFilsMap = new Dictionary<string, int>();//保存update文件下标 与下面变量配合 检查是否有重复更新文件（在多个版本迭代中）
+                List<BaseFileInfo> update_files = new List<BaseFileInfo>();
+                List<BaseFileInfo> delete_files = new List<BaseFileInfo>();
                 for (int i = span_versions.Count-1; i >= 0; i--) 
                 {
                     jobj = JObject.Parse(GetUpdateInfoFromUrl(update_url + "updateinfo_" + span_versions[i] + ".json"));
@@ -77,8 +100,8 @@ namespace Update
                     {
                         foreach (var file in jobj["delete_files"])
                         {
-                            delete_file_names.Add((string)file["file_name"]);
-                            delete_save_urls.Add((string)file["save_url"]);
+                            delete_files.Add(new BaseFileInfo((string)file["file_name"],
+                                                              (string)file["save_dir"]));
                         }
                     }
                     else if(i == 0)//最新版 获取它的更新描述
@@ -87,26 +110,32 @@ namespace Update
                         version = (int)jobj["version"];
                         update_info = (string)jobj["update_info"];
                     }
-                    //从旧到新版本  将新版本相同名文件覆盖旧版本  不同名则保留
+                    foreach (var file in jobj["insert_files"])
+                    {
+                        insert_files.Add(new FileInfo((string)file["file_name"],
+                                                      (long)file["file_size"],
+                                                      (string)file["download_url"],
+                                                      (string)file["save_dir"] + (string)file["file_name"]));
+                    }
+                    //从旧到新版本  新增文件中将新版本相同名文件覆盖旧版本  不同名则保留
                     foreach (var file in jobj["update_files"])
                     {
                         string file_name = (string)file["file_name"];
                         int index = -1;
                         if (updateFilsMap.TryGetValue(file_name, out index))//成功则说明已经有文件
                         {//不新增而是覆盖
-                            update_file_names[index] = file_name;
-                            update_file_sizes[index] = (long)file["file_size"];
-                            update_dwld_urls[index] = (string)file["download_url"];
-                            update_save_urls[index] = (string)file["save_url"] + (string)file["file_name"];
+                            update_files[index] = new FileInfo((string)file["file_name"],
+                                                               (long)file["file_size"],
+                                                               (string)file["download_url"],
+                                                               (string)file["save_dir"] + (string)file["file_name"]);
                         }
                         else//失败则说明是新增文件
                         {
-                            updateFilsMap.Add(file_name, update_file_names.Count);
-
-                            update_file_names.Add(file_name);
-                            update_file_sizes.Add((long)file["file_size"]);
-                            update_dwld_urls.Add((string)file["download_url"]);
-                            update_save_urls.Add((string)file["save_url"] + (string)file["file_name"]);
+                            updateFilsMap.Add(file_name, update_files.Count);
+                            update_files.Add(new FileInfo((string)file["file_name"],
+                                                          (long)file["file_size"],
+                                                          (string)file["download_url"],
+                                                          (string)file["save_dir"] + (string)file["file_name"]));
                         }
                     }
 
@@ -119,9 +148,15 @@ namespace Update
                 {
                     isOthersStop = false;
                     //删除旧文件
-                    DeleteDeprecatedFile(delete_file_names, delete_save_urls);
+                    if (!DeleteDeprecatedFile(delete_files, update_files))
+                    {
+                        CancelUpdate();
+                        Dispatcher.BeginInvoke(new CloseWindowSetter(CloseWindow));
+                        return;
+                    }
+                    
                     //下载更新文件
-                    DownloadHttpFile(update_file_names, update_file_sizes, update_dwld_urls, update_save_urls);
+                    DownloadHttpFile(insert_files, update_files);
 
                     isOthersStop = true;
                     btn_cancel.Dispatcher.BeginInvoke(new CancelButtonDisableSetter(SetCancelButtonDisable));
@@ -131,6 +166,17 @@ namespace Update
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
+                try
+                {
+                    CancelUpdate();
+                    Close();  
+                }
+                catch
+                {
+
+                }
+
+                
             }
         }
         public string GetUpdateInfoFromUrl(string http_url)
@@ -149,23 +195,26 @@ namespace Update
         }
 
        
-       
         //需要处理下载失败 和 取消更新还原文件
         /*可能的失败 
         1.c盘空间不足 到时copy到temp文件夹失败
         2.文件一直被占用 只能取消更新
         3.网络错误
         4.
-
         */
-        
-        public void DownloadHttpFile(List<string> file_names, List<long> file_sizes, List<string> http_urls, List<string> save_urls)
+        public void DownloadHttpFile(List<BaseFileInfo> insert_files, List<BaseFileInfo> update_files)
         {
+            List<BaseFileInfo>[] flLists = new List<BaseFileInfo>[2] { insert_files, update_files };
+
             long max = 0;
-            foreach (var size in file_sizes)
+            foreach (var files in flLists)
             {
-                max += size;
+                foreach (var file in files)
+                {
+                    max += ((FileInfo)file).file_sizes;
+                }
             }
+            
             pbDown.Dispatcher.BeginInvoke(new ProgressBarMaximumSetter(SetProgressBarMaximum), max);
 
             //下载远程文件
@@ -178,61 +227,67 @@ namespace Update
             int interval_max = 800;
             long interval = interval_min;
             long tick = 0;
-            for (int k=0; k< http_urls.Count; k++)
+            foreach (var files in flLists)
             {
-                requests.Add(WebRequest.Create(http_urls[k]));
-                requests[k].Timeout = 1000;
-                Console.WriteLine("0");
-                while (IsFileInUse(save_urls[k]))
+                requests.Clear();
+                for (int k = 0; k < files.Count; k++)
                 {
-                    sp2.Dispatcher.BeginInvoke(new FileUsedSetter(DisplayFileUsed), file_names[k]);
-                    Thread.Sleep(500);
-                }
-       
-                string tempPath = System.IO.Path.GetTempPath();//临时文件夹
-                string rdFileName = System.IO.Path.GetRandomFileName();//临时文件名 
-                int tryCount = 0;
-                while (IsFileInUse(tempPath + rdFileName) && tryCount++ < 10)
-                    rdFileName = System.IO.Path.GetRandomFileName();
-                if (tryCount >= 10)
-                    throw new Exception("Try random file name fail! ");
-                if(File.Exists(save_urls[k]))
-                {
-                    File.Copy(save_urls[k], tempPath + rdFileName);//先把原先文件复制到临时文件中
-                    tempFileMap.Add(save_urls[k], tempPath + rdFileName);//记录此次复制双方文件地址
-                }
-                string fullPath = System.IO.Path.GetDirectoryName(save_urls[k]);
-                if (fullPath !=  "" && !Directory.Exists(fullPath))
-                {
-                    Directory.CreateDirectory(fullPath);
-                }
-                Stream fileStream = new FileStream(save_urls[k], FileMode.Create);
-                Stream netStream = requests[k].GetResponse().GetResponseStream();
-                long oldTick = DateTime.Now.Ticks / 10000;
-                int realReadLen = netStream.Read(read, 0, read.Length);
-                while (realReadLen > 0 && !isCancel)
-                {
-                    readCount += (long)realReadLen;
-                    tick = (DateTime.Now.Ticks / 10000) - oldTick;
-                    if (tick > interval)
+                    FileInfo fi = (FileInfo)files[k];
+                    requests.Add(WebRequest.Create(fi.download_url));
+                    requests[k].Timeout = 1000;
+                    Console.WriteLine("0");
+                    while (IsFileInUse(fi.save_dir) && !isCancel)
                     {
-                        downloadSpeed = (int)(readCount * 1000L / 1024L / tick);
-                        readCount = 0;
-                        oldTick = DateTime.Now.Ticks / 10000;
-                        if (interval < interval_max)
-                            interval += 50;
+                        sp2.Dispatcher.BeginInvoke(new FileUsedSetter(DisplayFileUsed), fi.file_name);
+                        Thread.Sleep(500);
                     }
 
-                    fileStream.Write(read, 0, realReadLen);
-                    //progressBarValue += realReadLen;
-                    object[] param = new object[] { realReadLen, file_names[k], downloadSpeed };
-                    sp2.Dispatcher.BeginInvoke(new ProgressBarSetter(SetProgressBar), param);
-                    realReadLen = netStream.Read(read, 0, read.Length);
-                    Thread.Sleep(1);
-                       
+                    string tempPath = System.IO.Path.GetTempPath();//临时文件夹
+                    string rdFileName = System.IO.Path.GetRandomFileName();//临时文件名 
+                    int tryCount = 0;
+                    while (IsFileInUse(tempPath + rdFileName) && tryCount++ < 10)
+                        rdFileName = System.IO.Path.GetRandomFileName();
+                    if (tryCount >= 10)
+                        throw new Exception("Try random file name fail! ");
+                    if (File.Exists(fi.save_dir))
+                    {
+                        File.Copy(fi.save_dir, tempPath + rdFileName);//先把原先文件复制到临时文件中
+                        tempFileMap.Add(fi.save_dir, tempPath + rdFileName);//记录此次复制双方文件地址
+                    }
+                    string fullPath = System.IO.Path.GetDirectoryName(fi.save_dir);
+                    if (fullPath != "" && !Directory.Exists(fullPath))
+                    {
+                        Directory.CreateDirectory(fullPath);
+                    }
+                    Stream fileStream = new FileStream(fi.save_dir, FileMode.Create);
+                    Stream netStream = requests[k].GetResponse().GetResponseStream();
+                    long oldTick = DateTime.Now.Ticks / 10000;
+                    int realReadLen = netStream.Read(read, 0, read.Length);
+                    while (realReadLen > 0 && !isCancel)
+                    {
+                        readCount += (long)realReadLen;
+                        tick = (DateTime.Now.Ticks / 10000) - oldTick;
+                        if (tick > interval)
+                        {
+                            downloadSpeed = (int)(readCount * 1000L / 1024L / tick);
+                            readCount = 0;
+                            oldTick = DateTime.Now.Ticks / 10000;
+                            if (interval < interval_max)
+                                interval += 50;
+                        }
+
+                        fileStream.Write(read, 0, realReadLen);
+                        //progressBarValue += realReadLen;
+                        object[] param = new object[] { realReadLen, fi.file_name, downloadSpeed };
+                        sp2.Dispatcher.BeginInvoke(new ProgressBarSetter(SetProgressBar), param);
+                        realReadLen = netStream.Read(read, 0, read.Length);
+                        Thread.Sleep(1);
+
+                    }
+                    fileStream.Close();
+                    netStream.Close();
                 }
-                fileStream.Close();
-                netStream.Close();
+                
             }
            
         }
@@ -308,32 +363,54 @@ namespace Update
         }
         
         //删除版本更新中弃用文件
-        public void DeleteDeprecatedFile(List<string> file_names, List<string> save_urls)
+        public bool DeleteDeprecatedFile(List<BaseFileInfo> _delete_files,List<BaseFileInfo> _update_files)
         {
             try
             {
-                for (int i = 0; i < file_names.Count; i++)
+                List<BaseFileInfo>[] flLists = new List<BaseFileInfo>[2] { _delete_files, _update_files };
+
+                foreach (var files in flLists)
                 {
+                    for (int i = 0; i < files.Count; i++)
+                    {
+                        string tempPath = System.IO.Path.GetTempPath();//临时文件夹
+                        string rdFileName = System.IO.Path.GetRandomFileName();//临时文件名 
+                        int tryCount = 0;
+                        while (IsFileInUse(tempPath + rdFileName) && tryCount++ < 10)
+                            rdFileName = System.IO.Path.GetRandomFileName();
+                        if (tryCount >= 10)
+                            throw new Exception("Try random file name fail! ");
 
-                    string tempPath = System.IO.Path.GetTempPath();//临时文件夹
-                    string rdFileName = System.IO.Path.GetRandomFileName();//临时文件名 
-                    int tryCount = 0;
-                    while (IsFileInUse(tempPath + rdFileName) && tryCount++ < 10)
-                        rdFileName = System.IO.Path.GetRandomFileName();
-                    if (tryCount >= 10)
-                        throw new Exception("Try random file name fail! ");
-                  
-                    File.Copy(save_urls + file_names[i], tempPath + rdFileName);//先把原先文件复制到临时文件中
-                    tempFileMap.Add(save_urls + file_names[i], tempPath + rdFileName);//记录此次复制双方文件地址
-                  
-
-                    File.Delete(save_urls[i] + file_names[i]);
+                        try
+                        {
+                            File.Copy(files[i].GetRelativePath(), tempPath + rdFileName);//先把原先文件复制到临时文件中
+                            tempFileMap.Add(files[i].GetRelativePath(), tempPath + rdFileName);//记录此次复制双方文件地址
+                        }
+                        catch(FileNotFoundException)
+                        {
+                            continue;
+                        }
+                        DelFile:
+                        try { File.Delete(files[i].GetRelativePath());}
+                        catch (IOException)
+                        {//一般只会是文件占用导致这个异常
+                            tb.Dispatcher.Invoke(new FileUsedSetter(DisplayFileUsed), files[i].file_name);
+                            Thread.Sleep(1000);
+                            if (!isCancel)
+                                goto DelFile;
+                            else
+                                return false;
+                        }
+                        catch (Exception e){ Console.WriteLine(e.Message);}
+                    }
                 }
             }
-            catch(Exception e) 
+            catch (Exception e) 
             {
                 Console.WriteLine(e.Message);
+                return false;
             }
+            return true;
         }
         public void DelteTempFile()
         {
@@ -399,7 +476,6 @@ namespace Update
             return result;
         }
 
-       
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             switch (((Button)sender).Name)

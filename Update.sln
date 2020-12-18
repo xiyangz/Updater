@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Updater", "Update\Updater.csproj", "{404233EC-60A9-47D9-8608-C0137C5BBA0D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Updater", "Updater\Updater.csproj", "{404233EC-60A9-47D9-8608-C0137C5BBA0D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUpdater", "TestUpdater\TestUpdater.csproj", "{1FA8A629-662C-41E3-991D-9BD37C9599B9}"
 EndProject
